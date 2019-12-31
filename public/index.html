@@ -1,11 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Test Page</title>
+    <meta charset="UTF-8" />
+    <title>Hugo's Test Script</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+        integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+        crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+        integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+        crossorigin=""></script>
+    <style>
+        #mapid {
+            height: 480px;
+            width: 720px;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Test Page</h1>
-    <p>This is a test page.</p>
+    <h1>Find Myself</h1>
+    <div id="mapid"></div>
+    <p>
+        Latitude: <span id="lat"></span>°<br />
+        Longitude: <span id="long"></span>°
+    </p>
+
+    <script>
+
+        //Leaflet.js map
+        const mymap = L.map('mapid').setView([0, 0], 18);
+        const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        const attribution = '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>';
+        const tiles = L.tileLayer(tileUrl, { attribution });
+        tiles.addTo(mymap);
+
+        //marker
+        const marker = L.marker([0, 0]).addTo(mymap);
+
+        async function getData() {
+            //fetch data
+            if ('geolocation' in navigator) {
+                console.log('geolocation available');
+
+                navigator.geolocation.getCurrentPosition(async position => {
+                    console.log(position);
+                    updateChart(position.coords.latitude, position.coords.longitude);
+                });
+            } else {
+                console.log('geolocation NOT available');
+            }
+        }
+
+        async function updateChart(latitude, longitude) {
+
+            //set lat long
+            marker.setLatLng([latitude, longitude]);
+            mymap.setView([latitude, longitude], 18);
+
+            //update web page
+            document.getElementById('lat').textContent = latitude.toFixed(2);
+            document.getElementById('long').textContent = longitude.toFixed(2);
+
+            //post data to server
+            const data = { latitude, longitude };
+            const options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            };
+            const response = await fetch('/api', options);
+            const json = await repsonse.json();
+            console.log(json);
+        }
+
+        getData();
+
+    </script>
 </body>
+
 </html>
